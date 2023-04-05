@@ -1,3 +1,5 @@
+
+// рабочий код
 /*
 #include <iostream>
 #include <cassert>

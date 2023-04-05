@@ -1,3 +1,4 @@
+// рабочий код
 #include <iostream>
 #include <climits>
 #include <sstream>

@@ -1,4 +1,5 @@
 // Copyright 2023 CodeMaster482
+// рабочий код
 #include <iostream>
 #include <cassert>
 #include <sstream>
@@ -26,8 +27,8 @@ class Stack {
         void pop() {
             if (top_index >= 0) {
                 top_index --;
-                if (top_index < buffer_size/4)
-                    this->cut();
+                /*if (top_index < buffer_size/4)
+                    this->cut();*/
             }
         }
 
@@ -148,7 +149,6 @@ class Soulution {
 
 
 void run(std::istream& input, std::ostream& output) {
-    output << "-------- Task 3 compilation -------------" << std::endl;
     Soulution solution;
     int n;
     
@@ -160,139 +160,8 @@ void run(std::istream& input, std::ostream& output) {
     }
 }
 
-void test_run_Stack(std::istream& input, std::ostream& output) {
-    output << "-------- Task 3 compilation -------------" << std::endl;
-    Stack<int> q1;
-    output << "status ok ....." << std::endl;
-    Stack<char> q2;
-    Stack<double> q3;
-
-    q1.push(1);
-    output << "status ok ....." << std::endl;
-    q1.push(2);
-    q1.push(3);
-    q1.push(5);
-    q1.push(7);
-    q1.print();
-    q1.pop();
-    q1.pop();
-    q1.print();
-
-    q2.push('a');
-    q2.push('b');
-    q2.push('c');
-    q2.push('d');
-    q2.push('e');
-    q2.print();
-    q2.pop();
-    q2.pop();
-    q2.print();
-
-    q3.push(3.14);
-    q3.push(2.71);
-    q3.print();
-    q3.pop();
-    q3.print();
-}
-
-void test_run_Queue(std::istream& input, std::ostream& output) {
-    stackQueue<int> q1;
-    stackQueue<char> q2;
-    stackQueue<double> q3;
-
-    q1.enqueue(1);
-    q1.enqueue(2);
-    q1.enqueue(3);
-    q1.enqueue(5);
-    q1.enqueue(7);
-    q1.print();
-    q1.dequeue();
-    q1.dequeue();
-    q1.print();
-
-    q2.enqueue('a');
-    q2.enqueue('b');
-    q2.enqueue('c');
-    q2.enqueue('d');
-    q2.enqueue('e');
-    q2.print();
-    q2.dequeue();
-    q2.dequeue();
-    q2.print();
-
-    q3.enqueue(3.14);
-    q3.enqueue(2.71);
-    q3.print();
-    q3.dequeue();
-    q3.print();
-}
-
 int main() {
-    test_run_Queue(std::cin, std::cout);
+    run(std::cin, std::cout);
     // test_solution();
     return 0;
-}
-
-void test_solution() {
-    char yes[] = "YES\n";
-    char no[] = "NO";
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "3 3 44 3 50 2 44";
-        run (input, output);
-        // assert(strcmp(output.str(), yes));
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "2 2 -1 3 10";
-        run (input, output);
-        assert(output.str() == "YES");
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "2 3 44 2 66";
-        run (input, output);
-        assert(output.str() == "NO");
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "5 3 1 3 2 2 1 2 2 2 3";
-        run (input, output);
-        assert(output.str() == "NO");
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "4 3 1 3 2 2 1 2 2";
-        run (input, output);
-        assert(output.str() == "YES");
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "0";
-        run (input, output);
-        assert(output.str() == "YES");
-    }
-    {
-        std::stringstream input;
-        std::stringstream output;
-
-        input << "1 4 3";
-        run (input, output);
-        assert(output.str() == "NO");
-    }
-    
-    
-    
 }
