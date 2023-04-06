@@ -201,7 +201,7 @@ class binHeap {
         }
     private:
         Compare cmp_;
-        gVector<int> data_;
+        gVector<T> data_;
 
         void buildHeap() {
             for (int i = data_.size()/2 - 1; i >= 0; --i) {
@@ -251,6 +251,7 @@ class binHeap {
 
 template<class T>
 gVector<T> mergeKArrays(const gVector<gVector<T>>& arr) {
+    std::cout << "here were func" << std::endl;
     IsLessByValue comparator;
     binHeap<element, IsLessByValue> heap(comparator);
     gVector<T> output;
@@ -285,19 +286,21 @@ gVector<T> mergeKArrays(const gVector<gVector<T>>& arr) {
     return output;
 }
 
-void run(std::istream& input, std::ostream& output) {
-    int k, n;
-    input >> k >> n;
-    gVector<gVector<int>> arr(k, gVector<int>(n));
 
+
+void run(std::istream& input, std::ostream& output) {
+    int k, n, el;
+    input >> k;
+    gVector<gVector<int>> arr(k);
+    std::cout << "ok!" << std::endl;
     for (int i = 0; i < k; ++i) {
+        std::cin >> n;
+        std::cout << "here were" << std::endl;
         for (int j = 0; j < n; ++j) {
-            int el;
             input >> el;
-            arr[i][j] = el;
+            arr[i].push_back(el);
         }
     }
-
     mergeKArrays(arr);
 }
 
