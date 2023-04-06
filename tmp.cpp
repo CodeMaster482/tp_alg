@@ -1,120 +1,6 @@
 #include <iostream>
 #include <cassert>
 #include <string>
-
-void run(std::istream&, std::ostream&);
-void testSolution();
-
-template<class T>
-class gVector {
-    private:
-        T* data_;
-        int size_;
-        int capacity_;
-
-        void grow() {
-            if (capacity_ == 0) {
-                    capacity_ = 1;
-                } else {
-                    capacity_ *= 2;
-                }
-
-                T* new_arr = new T[capacity_];
-
-                for (int i = 0; i < size_; ++i) {
-                    new_arr[i] = data_[i];
-                }
-
-                delete[] data_;
-                data_ = new_arr;
-        }
-    public:
-        gVector(): size_(0), capacity_(0), data_(nullptr) {}
-        
-        gVector(int size): size_(size), capacity_(size) {
-            data_ = new T[size];
-        }
-
-        gVector(int size, const T& data): capacity_(size), size_(size) {
-            data_ = new T[size];
-            for (int i = 0; i < size_; ++i) {
-                data_[i] = data;
-            }
-        }
-
-        gVector(const gVector<T>& vector):
-            data_(new T[vector.capacity_]),
-            capacity_(vector.capacity_),
-            size_(vector.size_) {
-                for (int i = 0; i < size_; ++i) {
-                    data_[i] = vector.data_[i];
-                }
-        }
-
-        ~gVector() {
-            delete[] data_;
-        }
-
-        gVector<T>& operator= (const gVector<T>& vector) {
-            if (this != &vector) {
-                delete[] this->data_;
-                capacity_ = vector.capacity_;
-                size_ = vector.size_;
-
-                for (int i = 0; i < size_; ++i) {
-                    data_[i] = vector.data_[i];
-                }
-            }
-            return *this;
-        }
-
-        T& operator[] (int index) const {
-            if (index < 0 && index > size_)
-                throw std::out_of_range("index out of range");
-            return data_[index];
-        }
-
-
-
-        bool empty() const {
-            return size_ == 0;
-        }
-
-        int size() const {
-            return size_;
-        }
-
-        int get_capacity() const {
-            return capacity_;
-        }
-
-        void push_back(const T& el) {
-            if (size_ == capacity_) {
-                this->grow();
-            }
-            data_[size_++] = el;
-        }
-
-        void pop_back() {
-            size_--;
-        }
-
-        T get_last() const {
-            return data_[size_];
-        }
-
-        T get_first() const {
-            return data_[0];
-        }
-
-        void clear() {
-            size_ = 0;
-        }
-
-       OpenAI: API Response was: Error aborted More information about this error: https://www.codegpt.co/docs/tutorial-basics/api_errors```cpp
-#include <iostream>
-#include <cassert>
-#include <string>
 #include <vector>
 
 void run(std::istream&, std::ostream&);
@@ -129,19 +15,19 @@ class gVector {
 
         void grow() {
             if (capacity_ == 0) {
-                    capacity_ = 1;
-                } else {
-                    capacity_ *= 2;
-                }
+                capacity_ = 1;
+            } else {
+                capacity_ *= 2;
+            }
 
-                T* new_arr = new T[capacity_];
+            T* new_arr = new T[capacity_];
 
-                for (int i = 0; i < size_; ++i) {
-                    new_arr[i] = data_[i];
-                }
+            for (int i = 0; i < size_; ++i) {
+                new_arr[i] = data_[i];
+            }
 
-                delete[] data_;
-                data_ = new_arr;
+            delete[] data_;
+            data_ = new_arr;
         }
     public:
         gVector(): size_(0), capacity_(0), data_(nullptr) {}
@@ -252,13 +138,13 @@ class gVector {
 
         void print() {
             if (size_ == 0) {
-                std::cerr << \"not initalisated vector" << std::endl;
+                std::cerr << "not initalisated vector" << std::endl;
                 return;
             }
 
-            std::cout << \"[ ";
+            std::cout << "[ ";
             for (int i = 0; i < size_ - 1; ++i) {
-                std::cout << data_[i] << \", ";
+                std::cout << data_[i] << ", ";
             }
             std::cout << data_[size_ - 1] << " ]" << std::endl;
         }
@@ -270,7 +156,9 @@ struct element {
     int array_id;
 };
 
+
 class IsLessByValue {
+    public:
     bool operator()(const element& l_el, const element& r_el) {
         return l_el.value < r_el.value;
     }
@@ -278,6 +166,7 @@ class IsLessByValue {
 
 template<class T>
 class IsLessDefaultCmp {
+    public:
     bool operator()(const T& l, const T& r) { return l < r; }
 };
 
@@ -291,6 +180,7 @@ class binHeap {
 
             for (int i = 0; i < size; ++i) 
                 this->insert(arr[i]);
+            buildHeap();
         }
 
         void insert(const T& el) {
@@ -319,7 +209,7 @@ class binHeap {
             }
         }
 
-        void shiftDown(size_t& i) {
+        void shiftDown(size_t i) {
             size_t end = data_.size() - 1;
             size_t left = 2*i + 1;
             size_t right = 2*i + 2;
@@ -359,13 +249,14 @@ class binHeap {
         }
 };
 
-template<class T, class Compare = IsLessDefaultCmp<T>>
-gVector<T> mergeKArrays(const std::vector<gVector<T>>& arr) {
-    binHeap<element, IsLessByValue> heap;
+template<class T>
+gVector<T> mergeKArrays(const gVector<gVector<T>>& arr) {
+    IsLessByValue comparator;
+    binHeap<element, IsLessByValue> heap(comparator);
     gVector<T> output;
 
     int k = arr.size();
-    std::vector<int> curr_indices(k, 0);
+    gVector<int> curr_indices(k, 0);
     int n = arr[0].size();
     element curr_min = {0, 0, 0};
 
@@ -390,12 +281,14 @@ gVector<T> mergeKArrays(const std::vector<gVector<T>>& arr) {
         curr_indices[curr_id] = next_id;
     }
 
+    output.print();
     return output;
 }
 
 void run(std::istream& input, std::ostream& output) {
     int k, n;
-    input >> k >> n;\n\n    std::vector<gVector<int>> arr(k, gVector<int>(n));
+    input >> k >> n;
+    gVector<gVector<int>> arr(k, gVector<int>(n));
 
     for (int i = 0; i < k; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -405,9 +298,7 @@ void run(std::istream& input, std::ostream& output) {
         }
     }
 
-    for (int i: mergeKArrays(arr)) {
-        output << i << \" ";
-    }
+    mergeKArrays(arr);
 }
 
 int main() {
