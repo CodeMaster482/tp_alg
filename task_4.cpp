@@ -1,6 +1,8 @@
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <string>
+
 
 void run(std::istream&, std::ostream&);
 void testSolution();
@@ -14,22 +16,23 @@ class gVector {
 
         void grow() {
             if (capacity_ == 0) {
-                    capacity_ = 1;
-                } else {
-                    capacity_ *= 2;
-                }
+                capacity_ = 1;
+            } else {
+                capacity_ *= 2;
+            }
 
-                T* new_arr = new T[capacity_];
+            T* new_arr = new T[capacity_];
 
-                for (int i = 0; i < size_; ++i) {
-                    new_arr[i] = data_[i];
-                }
+            for (int i = 0; i < size_; ++i) {
+                new_arr[i] = data_[i];
+            }
 
-                delete[] data_;
-                data_ = new_arr;
+            delete[] data_;
+            data_ = new_arr;
         }
+
     public:
-        gVector(): size_(0), capacity_(0), data_(nullptr) {}
+        gVector(): size_(0), capacity_(1), data_(new T[capacity_]) {}
         
         gVector(int size): size_(size), capacity_(size) {
             data_ = new T[size];
@@ -69,12 +72,10 @@ class gVector {
         }
 
         T& operator[] (int index) const {
-            if (index < 0 && index > size_)
+            if (index < 0 || index >= size_)
                 throw std::out_of_range("index out of range");
             return data_[index];
         }
-
-
 
         bool empty() const {
             return size_ == 0;
@@ -100,7 +101,7 @@ class gVector {
         }
 
         T get_last() const {
-            return data_[size_];
+            return data_[size_ - 1];
         }
 
         T get_first() const {
@@ -124,10 +125,12 @@ class gVector {
         }
 
         void resize(int size) {
+            if (size_ == 0)
+                return;
             if (size > size_) {
                 this->reserve(size);
                 for (int i = size_; i < size; ++i) {
-                    data_ = T();
+                    data_[i] = T();
                 }
                 size_ = size;
             } else if (size_ > size) {
@@ -151,21 +154,24 @@ class gVector {
 
 struct element {
     int value;
-    int value_id;
-    int array_id;
+    size_t value_id;
+    size_t array_id;
+
+    element() = default;
+    element(int value_, size_t value_id_, size_t array_id_):value(value_), value_id(value_id_), array_id(array_id_) {}
 };
 
-class IsLessByValue {
-    bool operator()(const element& l_el, const element& r_el) {
-        return l_el.value < r_el.value;
-    }
-};
+
 
 template<class T>
 class IsLessDefaultCmp {
+    public:
     bool operator()(const T& l, const T& r) { return l < r; }
 };
 
+bool operator<(const element& l, const element& r) {
+    return l.value < r.value;
+}
 
 template <class T, class Compare = IsLessDefaultCmp<T>>
 class binHeap {
@@ -176,6 +182,7 @@ class binHeap {
 
             for (int i = 0; i < size; ++i) 
                 this->insert(arr[i]);
+            buildHeap();
         }
 
         void insert(const T& el) {
@@ -183,11 +190,23 @@ class binHeap {
             shiftUp(data_.size() - 1);
         }
 
-        T extractMin() const{
-            return data_.get_first();
+        T extractMin() {
+            if (data_.size() == 1) {
+                T root = data_[0];
+                data_.resize(0);
+                return root;
+            }
+
+            T root = data_[0];
+            data_[0] = data_[data_.size() - 1];
+            data_.resize(data_.size() - 1);
+
+            shiftDown(0);
+            return root;
         }
 
-        const T& peek() const {
+
+    const T& peek() const {
             return data_[0];
         }
 
@@ -196,7 +215,7 @@ class binHeap {
         }
     private:
         Compare cmp_;
-        gVector<int> data_;
+        gVector<T> data_;
 
         void buildHeap() {
             for (int i = data_.size()/2 - 1; i >= 0; --i) {
@@ -204,31 +223,23 @@ class binHeap {
             }
         }
 
-        void shiftDown(size_t& i) {
-            size_t end = data_.size() - 1;
-            size_t left = 2*i + 1;
-            size_t right = 2*i + 2;
-            size_t tmp_index = i; 
-            
-            while (left <= end) {
-                size_t min = tmp_index;
+        void shiftDown(size_t i) {
+            size_t parent = i;
+            int child = 2 * i + 1;
+            while (child < data_.size()) {
+                if ((child + 1 < data_.size()) && cmp_(data_[child + 1], data_[child])) {
+                    child++;
+                }
 
-                if (cmp_(data_[left], data_[tmp_index]))
-                    min = left;
-                if (right <= end && cmp_(data_[right], data_[min]))
-                    min = right;
-                
-                if (min != tmp_index)
-                    std::swap(data_[tmp_index], data_[min]);
-                else
-                    return;
-                
-                tmp_index = min;
-                left = 2*tmp_index + 1;
-                right = 2*tmp_index + 2;
+                if (cmp_(data_[child], data_[parent])) {
+                    std::swap(data_[parent], data_[child]);
+                    parent = child;
+                    child = 2 * parent + 1;
+                } else {
+                    break;
+                }
             }
         }
-
 
         void shiftUp(size_t i) {
             while (i > 0) {
@@ -246,82 +257,154 @@ class binHeap {
 };
 
 template<class T>
-class Solution {
-    public:
-    gVector<T> heap_merge_sort(const gVector<gVector<T>>& arrs) {
-        binHeap <element, IsLessByValue> heap;
-        gVector <T> result;
-        
-        
-        int k = arrs.size();
-        
+gVector<T> mergeKArrays(const gVector<gVector<T>>& arr) {
+    int count_el = 0, k = arr.size();
 
-        result.reserve(k*n);
-        return;
+    gVector<int> length(k);
+
+    for (size_t i = 0; i < k; ++i) {
+        length[i] = arr[i].size();
+        count_el += length[i];
     }
-};
 
-int main (int argc, char* argv[]) {
-    run(std::cin, std::cout);
-    // testSolution();
-    return 0;
-}
+    gVector<int> result;
+    result.reserve(count_el);
 
-void run (std::istream& input, std::ostream& output) {
-    int k;
-    std::cin >> k;
-    gVector <gVector<int>> arr_vector(k, gVector<int>());
-    int n;
 
-    for (int i = 0; i < k; ++i) {
-        std::cin >> n;
-        int el;
+    binHeap<element, IsLessDefaultCmp<element>> heap;
 
-        for (int i = 0; i < n; ++i) {
-            std::cin >> el;
-            arr_vector[i].push_back(el);
+    for (size_t i = 0; i < k; ++i) {
+        if (length[i] > 0) {
+            heap.insert({ arr[i][0], 0, i });
         }
     }
 
-    Solution s;
+    for (size_t i = 0; i < count_el; ++i) {
+        element min_element = heap.extractMin();
 
-    for  (int i: s.heap_merge_sort())
+        result.push_back(min_element.value);
+        
+        if (min_element.value_id + 1 < length[min_element.array_id]) {
+            int val = arr[min_element.array_id][min_element.value_id + 1];
+            size_t index = min_element.value_id + 1;
+            size_t array_index = min_element.array_id;
+            heap.insert({val, index, array_index});
+        }
+    }
+    return result;
+}
 
-    return;
+
+void run(std::istream& input, std::ostream& output) {
+    int k, n, el;
+    input >> k;
+    gVector<gVector<int>> arr(k);
+    
+    for (int i = 0; i < k; ++i) {
+        input >> n;
+
+        for (int j = 0; j < n; ++j) {
+            input >> el;
+            arr[i].push_back(el);
+        }
+    }
+
+    gVector<int> sorted = mergeKArrays(arr);
+    
+    for (int i = 0; i < sorted.size(); ++i) {
+        output << sorted[i] << " ";
+    }
+
+}
+
+int main() {
+    testSolution();
+    // run(std::cin, std::cout);
+    return 0;
 }
 
 void testSolution() {
     {
-        std::cout << "Constructor Test_1" << std::endl;
-        gVector<int> arr;
-        std::cout << ".........ok......." << std::endl;
-        gVector<int> arr1(15);
-        std::cout << ".........ok......." << std::endl;
-        gVector<int> arr2(10, 1);
-        std::cout << ".........ok......." << std::endl;
-        gVector<int> arr3(arr2);
-        std::cout << ".........ok......." << std::endl;
-        
-        
-        arr.print();
-        arr2.print();
-        arr3.print();
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-1 ------------------------------------->" << std::endl;
+
+        input << '0';
+
+        run(input, output);
+        std::cout << output.str() << std::endl;
+        assert(output.str() == "");
     }
     {
-        gVector<int> arr;
-        std::cout << "Constructor Test_2" << std::endl;
-        std::cout << arr.empty() << std::endl;
-        arr.push_back(10);
-        arr.push_back(40);
-        arr.push_back(18);
-        arr.push_back(89);
-        arr.print();
-        arr.pop_back();
-        arr.pop_back();
-        std::cout << arr.empty() << std::endl;
-        arr.print();
-        arr.clear();
-        std::cout << arr.empty() << std::endl;
-        arr.print();
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-2------------------------------------>" << std::endl;
+
+        input << "2 3 100 200 300 4 10 20 30 40";
+
+        run(input, output);
+        std::cout << output.str() << std::endl;
+        assert(output.str() == "10 20 30 40 100 200 300");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-3------------------------------------>" << std::endl;
+
+        input << "3 2 1 3 3 2 4 6 1 5";
+
+        run(input, output);
+        assert(output.str() == "1 2 3 4 5 6 ");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-4------------------------------------>" << std::endl;
+
+        input << "2 5 10 20 30 40 50 1 1000";
+
+        run(input, output);
+
+        assert(output.str() == "10 20 30 40 50 1000 ");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-5------------------------------------>" << std::endl;
+
+        input << "3 2 1000 2000 3 500 1500 2500 4 10 20 30 40";
+
+        run(input, output);
+
+        assert(output.str() == "10 20 30 40 500 1000 1500 2000 2500 ");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-6------------------------------------>" << std::endl;
+
+        input << "1 5 1 2 3 4 5";
+
+        run(input, output);
+
+        assert(output.str() == "1 2 3 4 5 ");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+
+        std::cout << "<---------------------------------test-7------------------------------------>" << std::endl;
+
+        input << "2 4 -10 -5 -2 -1 3 0 1 5";
+
+        run(input, output);
+
+        assert(output.str() == "-10 -5 -2 -1 0 1 5 ");
     }
 }
