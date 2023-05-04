@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-project (task_4)
+project(MyProject LANGUAGES CXX)
 
-set (CMAKE_CXX_STANDARD 17)
+add_executable(a task_1.cpp)
 
-set(SRC "task_4.cpp")
+add_executable(b task_2.cpp)
 
-add_executable(alg4 ${SRC})
+add_executable(c task_3.cpp)
+
+add_executable(d task_4.cpp)
+
+add_executable(e task_5.cpp)
